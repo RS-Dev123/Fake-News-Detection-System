@@ -1,5 +1,5 @@
 # CodeCrafter
-Axiora-Fake News Detection System @Rupam Sur @Makinur Rahman
+Axiora-Fake News Detection System
 
 
 AI-Powered Fake News Detection System

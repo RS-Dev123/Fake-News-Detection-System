@@ -307,18 +307,6 @@ The application is hosted on Render's Free plan. The service may enter an idle s
 
 ---
 
-## 📸 Screenshots
-
-Screenshots of the application interface and analysis results can be added here.
-
-### Home Interface
-
-_Add a screenshot of the main interface._
-
-### AI Analysis Results
-
-_Add a screenshot showing a sample verdict, confidence indicator, and explanation._
-
 ### Live Application
 
 **[Open Axiora](https://fake-news-detection-system-64m6.onrender.com/)**
@@ -358,7 +346,7 @@ News claims involving health, finance, politics, or public safety should be inde
 
 ---
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - [ ] Integrate reliable news and fact-checking sources.
 - [ ] Provide source citations supporting analysis results.
@@ -373,7 +361,7 @@ News claims involving health, finance, politics, or public safety should be inde
 
 ---
 
-## 👨‍💻Author
+## Author
 
 **Rupam Sur**
 

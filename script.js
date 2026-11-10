@@ -1,3 +1,4 @@
+
 async function analyzeNews() {
     const inputField = document.getElementById('newsInput');
     const analyzeBtn = document.getElementById('analyzeBtn');
@@ -5,6 +6,7 @@ async function analyzeNews() {
     const btnIcon = document.getElementById('btnIcon');
     const btnLoader = document.getElementById('btnLoader');
     const resultsContainer = document.getElementById('resultsContainer');
+
     const text = inputField.value.trim();
 
     if (!text) {
@@ -16,14 +18,17 @@ async function analyzeNews() {
     btnText.innerText = "Processing...";
     btnIcon.style.display = "none";
     btnLoader.style.display = "block";
-    
-    resultsContainer.style.display = 'none';
-    document.getElementById('progressBar').style.width = '0%';
+
+    resultsContainer.style.display = "none";
+    document.getElementById('progressBar').style.width = "0%";
 
     try {
-        const response = await fetch('http://127.0.0.1:5000/api/analyze', {
+        // Works locally and on Render when Flask serves the frontend
+        const response = await fetch('/api/analyze', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({ claim: text })
         });
 
@@ -32,12 +37,13 @@ async function analyzeNews() {
         if (response.ok) {
             updateUI(text, data);
         } else {
-            alert("Error: " + data.error);
+            alert("Error: " + (data.error || "Analysis failed."));
         }
 
     } catch (error) {
         console.error("Error:", error);
-        alert("Server connection failed. Is app.py running?");
+        alert("Unable to connect to the analysis server. Please try again.");
+
     } finally {
         analyzeBtn.disabled = false;
         btnText.innerText = "Analyze Deeply";
@@ -45,6 +51,7 @@ async function analyzeNews() {
         btnLoader.style.display = "none";
     }
 }
+
 
 function updateUI(originalText, resultData) {
     const resultsContainer = document.getElementById('resultsContainer');
@@ -56,65 +63,123 @@ function updateUI(originalText, resultData) {
     const confValue = document.getElementById('confValue');
     const progressBar = document.getElementById('progressBar');
     const reasonText = document.getElementById('reasonText');
+
     resultsContainer.style.display = 'flex';
-    
-    articlePreview.innerText = originalText.length > 250 ? originalText.substring(0, 250) + "..." : originalText;
+
+    articlePreview.innerText =
+        originalText.length > 250
+            ? originalText.substring(0, 250) + "..."
+            : originalText;
 
     verdictCard.className = 'card verdict-card glass-panel slide-up';
     verdictIcon.className = 'icon-box pulse-slow';
     progressBar.className = 'progress-fill glow-shadow';
+    progressBar.style.background = "";
+    progressBar.style.boxShadow = "";
 
-    verdictText.innerText = resultData.verdict;
-    categoryTag.innerHTML = `<i class="fa-solid fa-tag" style="margin-right: 5px;"></i> ${resultData.category || "News"}`;
-    
-   
-    animateValue(confValue, 0, resultData.confidence, 1500);
-    
-    typeWriter(reasonText, resultData.reason, 20);
+    const verdict = String(resultData.verdict || "Uncertain");
 
-    const verdictLower = resultData.verdict.toLowerCase();
-    
-    if (verdictLower.includes("fake") || verdictLower.includes("false")) {
+    const confidence = Math.max(
+        0,
+        Math.min(100, Number(resultData.confidence) || 0)
+    );
+
+    verdictText.innerText = verdict;
+
+    // Safely display the category returned by the API
+    categoryTag.innerHTML =
+        '<i class="fa-solid fa-tag" style="margin-right: 5px;"></i>';
+
+    categoryTag.appendChild(
+        document.createTextNode(
+            String(resultData.category || "News")
+        )
+    );
+
+    // Animate confidence score
+    animateValue(confValue, 0, confidence, 1500);
+
+    // Animate explanation
+    typeWriter(
+        reasonText,
+        String(resultData.reason || "No explanation available."),
+        20
+    );
+
+    const verdictLower = verdict.toLowerCase();
+
+    if (
+        verdictLower.includes("fake") ||
+        verdictLower.includes("false")
+    ) {
         verdictCard.classList.add('verdict-fake');
-        verdictIcon.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+
+        verdictIcon.innerHTML =
+            '<i class="fa-solid fa-triangle-exclamation"></i>';
+
         progressBar.classList.add('fill-fake');
+
     } else if (verdictLower.includes("true")) {
         verdictCard.classList.add('verdict-true');
-        verdictIcon.innerHTML = '<i class="fa-solid fa-shield-check"></i>';
+
+        verdictIcon.innerHTML =
+            '<i class="fa-solid fa-shield-check"></i>';
+
         progressBar.classList.add('fill-true');
+
     } else {
-        verdictIcon.innerHTML = '<i class="fa-solid fa-scale-balanced"></i>';
-        progressBar.style.background = "linear-gradient(90deg, #4facfe, #00f2fe)";
-        progressBar.style.boxShadow = "0 0 15px #00f2fe";
+        verdictIcon.innerHTML =
+            '<i class="fa-solid fa-scale-balanced"></i>';
+
+        progressBar.style.background =
+            "linear-gradient(90deg, #4facfe, #00f2fe)";
+
+        progressBar.style.boxShadow =
+            "0 0 15px #00f2fe";
     }
 
     setTimeout(() => {
-        progressBar.style.width = resultData.confidence + "%";
+        progressBar.style.width = confidence + "%";
     }, 300);
 }
 
+
 function animateValue(obj, start, end, duration) {
     let startTimestamp = null;
+
     const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.innerHTML = Math.floor(progress * (end - start) + start) + "%";
+        if (!startTimestamp) {
+            startTimestamp = timestamp;
+        }
+
+        const progress = Math.min(
+            (timestamp - startTimestamp) / duration,
+            1
+        );
+
+        obj.textContent =
+            Math.floor(progress * (end - start) + start) + "%";
+
         if (progress < 1) {
             window.requestAnimationFrame(step);
         }
     };
+
     window.requestAnimationFrame(step);
 }
 
+
 function typeWriter(element, text, speed) {
-    element.innerHTML = '';
+    element.textContent = '';
     let i = 0;
+
     function type() {
         if (i < text.length) {
-            element.innerHTML += text.charAt(i);
+            element.textContent += text.charAt(i);
             i++;
             setTimeout(type, speed);
         }
     }
+
     type();
 }

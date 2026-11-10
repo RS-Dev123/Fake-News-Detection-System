@@ -1,5 +1,4 @@
-# CodeCrafter
-Axiora-Fake News Detection System
+## Axiora-Fake News Detection System
 
 
 AI-Powered Fake News Detection System
